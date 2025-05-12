@@ -6,7 +6,9 @@
     "circualar",
     "buffer",
     "circular-buffer",
-    "javascript"
+    "javascript",
+    "window",
+    "fifo"
   ],
   "homepage": "https://github.com/shahradelahi/circular-buffer#readme",
   "repository": "github:shahradelahi/circular-buffer",
@@ -32,7 +34,7 @@
     "lint": "pnpm typecheck && eslint .",
     "lint:fix": "eslint --fix .",
     "prepublishOnly": "pnpm test && pnpm lint && pnpm format:check && pnpm build",
-    "test": "node --import tsx --test \"**/*.test.ts\" --no-experimental-strip-types",
+    "test": "node --import tsx --test \"**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "prettier": "@shahrad/prettier-config",
