@@ -45,6 +45,15 @@ export class CircularBuffer<T = number> {
   }
 
   /**
+   * Attempts to write an item into the buffer at given index.
+   * @param val value to store
+   * @param index index to store at
+   */
+  public putAt(val: T, index: number) {
+    this.buffer[this.relativeIndex(index)] = val;
+  }
+
+  /**
    * Clears the buffer (resets to empty)
    */
   public clear(): void {
@@ -67,16 +76,7 @@ export class CircularBuffer<T = number> {
    * @param index
    */
   public at(index: number): T {
-    if (Math.abs(index) > this.size()) {
-      throw new Error('Index out of bounds');
-    }
-
-    // Negative index is relative to the end of the buffer
-    if (index < 0) {
-      index = this.size() + index;
-    }
-
-    return this.buffer.at(index % this.capacity)!;
+    return this.buffer.at(this.relativeIndex(index))!;
   }
 
   [Symbol.iterator]() {
@@ -108,5 +108,18 @@ export class CircularBuffer<T = number> {
 
   public toArray(): T[] {
     return Array.from(this);
+  }
+
+  private relativeIndex(index: number): number {
+    if (Math.abs(index) > this.size()) {
+      throw new Error('Index out of bounds');
+    }
+
+    // Negative index is relative to the end of the buffer
+    if (index < 0) {
+      index = this.size() + index;
+    }
+
+    return index % this.capacity;
   }
 }

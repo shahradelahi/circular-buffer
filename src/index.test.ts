@@ -60,6 +60,19 @@ describe('CircularBuffer', () => {
       assert.strictEqual(buffer.isEmpty(), true);
       assert.strictEqual(buffer.isFull(), false);
     });
+
+    it('should put item into given location', () => {
+      buffer.put(10);
+      buffer.put(20);
+      buffer.put(30);
+      assert.deepStrictEqual(buffer.toArray(), [10, 20, 30]);
+
+      buffer.putAt(40, -2);
+      assert.deepStrictEqual(buffer.toArray(), [10, 40, 30]);
+
+      buffer.putAt(50, 0);
+      assert.deepStrictEqual(buffer.toArray(), [50, 40, 30]);
+    });
   });
 
   describe('size', () => {

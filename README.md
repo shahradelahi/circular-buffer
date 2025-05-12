@@ -57,6 +57,10 @@ buf.put(60); // now full, this overwrites the oldest entry (10)
 console.log(buf.toArray());
 // → [20, 30, 40, 50, 60]
 
+// Overwrite at gien index
+buf.putAt(70, -2);
+// → [20, 30, 40, 70, 60]
+
 // Clear it
 buf.clear();
 console.log(buf.isEmpty()); // true
