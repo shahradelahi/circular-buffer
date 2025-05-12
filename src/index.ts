@@ -1,5 +1,5 @@
-export class CircularBuffer {
-  private readonly buffer: number[];
+export class CircularBuffer<T = number> {
+  private readonly buffer: T[];
   private readonly capacity: number;
   private filled = false;
   private writeIndex = 0;
@@ -14,7 +14,7 @@ export class CircularBuffer {
       throw new Error('Capacity must be at least 2');
     }
     this.capacity = capacity;
-    this.buffer = new Array<number>(capacity);
+    this.buffer = new Array<T>(capacity);
   }
 
   /**
@@ -33,10 +33,10 @@ export class CircularBuffer {
 
   /**
    * Attempts to write an item into the buffer.
-   * @param item Number to store
+   * @param val value to store
    */
-  public put(item: number) {
-    this.buffer[this.writeIndex] = item;
+  public put(val: T) {
+    this.buffer[this.writeIndex] = val;
     this.writeIndex++;
     if (this.writeIndex >= this.capacity) {
       this.writeIndex = 0;
@@ -66,14 +66,16 @@ export class CircularBuffer {
    * Returns the element at the given index
    * @param index
    */
-  public at(index: number): number {
+  public at(index: number): T {
     if (Math.abs(index) > this.size()) {
       throw new Error('Index out of bounds');
     }
+
     // Negative index is relative to the end of the buffer
     if (index < 0) {
       index = this.size() + index;
     }
+
     return this.buffer.at(index % this.capacity)!;
   }
 
@@ -81,7 +83,7 @@ export class CircularBuffer {
     return this.iterator();
   }
 
-  private *iterator(): IterableIterator<number> {
+  private *iterator(): IterableIterator<T> {
     if (!this.isFull()) {
       for (let i = 0; i < this.writeIndex; i++) {
         yield this.buffer[i]!;
@@ -97,14 +99,14 @@ export class CircularBuffer {
     }
   }
 
-  public forEach(callback: (data: number, index: number) => void) {
+  public forEach(callback: (data: T, index: number) => void) {
     let index = 0;
     for (const item of this) {
       callback(item, index++);
     }
   }
 
-  public toArray(): number[] {
+  public toArray(): T[] {
     return Array.from(this);
   }
 }
