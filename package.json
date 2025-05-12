@@ -1,6 +1,6 @@
 {
   "name": "@se-oss/circular-buffer",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Circular Buffer implementation for JavaScript",
   "keywords": [
     "circualar",
