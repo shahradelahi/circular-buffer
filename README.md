@@ -36,11 +36,11 @@ buf.put(30);
 
 // Check status
 console.log(buf.isEmpty()); // false
-console.log(buf.isFull());  // false
-console.log(buf.size());    // 3
+console.log(buf.isFull()); // false
+console.log(buf.size()); // 3
 
 // Random access
-console.log(buf.at(0));  // 10
+console.log(buf.at(0)); // 10
 console.log(buf.at(-1)); // 30
 
 // Iterate in FIFO order
@@ -52,7 +52,7 @@ for (const num of buf) {
 // Overwrite when full
 buf.put(40);
 buf.put(50);
-buf.put(60);  // now full, this overwrites the oldest entry (10)
+buf.put(60); // now full, this overwrites the oldest entry (10)
 
 console.log(buf.toArray());
 // → [20, 30, 40, 50, 60]
