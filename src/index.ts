@@ -111,7 +111,7 @@ export class CircularBuffer<T = number> {
   }
 
   private relativeIndex(index: number): number {
-    if (Math.abs(index) > this.size()) {
+    if (Math.abs(index) > this.capacity) {
       throw new Error('Index out of bounds');
     }
 

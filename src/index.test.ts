@@ -59,6 +59,7 @@ describe('CircularBuffer', () => {
       buffer.clear();
       assert.strictEqual(buffer.isEmpty(), true);
       assert.strictEqual(buffer.isFull(), false);
+      assert.deepStrictEqual(buffer.toArray(), []);
     });
 
     it('should put item into given location', () => {
@@ -72,6 +73,7 @@ describe('CircularBuffer', () => {
 
       buffer.putAt(50, 0);
       assert.deepStrictEqual(buffer.toArray(), [50, 40, 30]);
+      buffer.clear();
     });
   });
 
@@ -176,10 +178,12 @@ describe('CircularBuffer', () => {
     });
 
     it('should throw for out-of-bounds positive index', () => {
-      assert.throws(() => buf.at(4), Error, 'Index out of bounds'); // size is 3
+      const buf = new CircularBuffer(3);
+      assert.throws(() => buf.at(4), Error, 'Index out of bounds');
     });
 
     it('should throw for out-of-bounds negative index', () => {
+      const buf = new CircularBuffer(3);
       assert.throws(() => buf.at(-4), Error, 'Index out of bounds'); // size is 3, -4 + 3 = -1, which is < 0
     });
 
