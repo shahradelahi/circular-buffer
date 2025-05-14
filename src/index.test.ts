@@ -211,6 +211,23 @@ describe('CircularBuffer', () => {
 
       assert.throws(() => cBuf.at(4), Error, 'Index out of bounds'); // size is 3
     });
+
+    it('should return the correct element at index 0 when the buffer is full and elements are overwritten', () => {
+      const capacity = 5;
+      const values = [
+        127.75, 129.02, 132.75, 145.4, 148.98, 137.52, 147.38, 139.05, 137.23, 149.3, 162.45,
+        178.95, 200.35, 221.9, 243.23, 243.52, 286.42, 280.27,
+      ];
+
+      const buf = new CircularBuffer(capacity);
+      values.forEach((value, index) => {
+        buf.put(value);
+
+        if (buf.isFull()) {
+          assert.strictEqual(buf.at(0), values.at(index - capacity + 1));
+        }
+      });
+    });
   });
 
   describe('Comprehensive scenario (capacity 4)', () => {

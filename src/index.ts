@@ -120,6 +120,12 @@ export class CircularBuffer<T = number> {
       index = this.size() + index;
     }
 
-    return index % this.capacity;
+    index = index % this.capacity;
+
+    if (!this.isFull()) {
+      return index;
+    }
+
+    return index + this.writeIndex;
   }
 }
