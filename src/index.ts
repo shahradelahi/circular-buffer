@@ -211,17 +211,16 @@ export class CircularBuffer<T = number> {
   }
 
   private relativeIndex(index: number): number {
-    const len = this.size();
-    if (Math.abs(index) > len) {
+    if (Math.abs(index) > this.capacity) {
       throw new Error(
         `Index out of bounds: ${index} not in valid range ` +
-          `[${len > 0 ? 0 : 0}..${len > 0 ? len - 1 : 0}] or ` +
-          `[-${len}..-1]`
+          `[${this.capacity > 0 ? 0 : 0}..${this.capacity > 0 ? this.capacity - 1 : 0}] or ` +
+          `[-${this.capacity}..-1]`
       );
     }
 
     if (index < 0) {
-      index = len + index;
+      index = this.size() + index;
     }
 
     if (!this.isFull()) {
