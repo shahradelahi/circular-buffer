@@ -5,9 +5,20 @@ export class CircularBuffer<T = number> {
   private writeIndex = 0;
 
   /**
-   * Create a circular buffer of capacity N.
-   * Internally, only (N - 1) elements can be stored to disambiguate full vs. empty.
-   * @param capacity Total size of the underlying array (must be >= 2)
+   * CircularBuffer stores up to `capacity` elements in a FIFO manner.
+   * Internally uses an array of length `capacity`, overwriting oldest values when full.
+   * @template T Type of items stored (defaults to `number`).
+   * @param capacity Total slots in the buffer (must be >= 2).
+   * @throws {Error} If capacity is less than 2.
+   *
+   * @example
+   * ```ts
+   * // Create a buffer for 5 numbers
+   * const buf = new CircularBuffer<number>(5);
+   * buf.put(10);
+   * buf.put(20);
+   * console.log(buf.size()); // 2
+   * ```
    */
   constructor(capacity: number) {
     if (capacity < 2) {
@@ -18,51 +29,108 @@ export class CircularBuffer<T = number> {
   }
 
   /**
-   * Returns true if the buffer is empty
+   * Check whether the buffer has no elements.
+   * @returns `true` if empty, `false` otherwise.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<string>(3);
+   * console.log(buf.isEmpty()); // true
+   * buf.put('a');
+   * console.log(buf.isEmpty()); // false
+   * ```
    */
   public isEmpty(): boolean {
     return !this.filled && this.writeIndex === 0;
   }
 
   /**
-   * Returns true if the buffer is full
+   * Check whether the buffer has wrapped around and is full.
+   * @returns `true` if full, `false` otherwise.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<number>(3);
+   * buf.put(1).put(2).put(3);
+   * console.log(buf.isFull()); // true
+   * ```
    */
   public isFull(): boolean {
     return this.filled;
   }
 
   /**
-   * Attempts to write an item into the buffer.
-   * @param val value to store
+   * Insert a value at the next write position. Overwrites oldest if buffer was full.
+   * @param val Item to store.
+   * @returns The buffer instance (chainable).
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<number>(3);
+   * buf.put(1).put(2).put(3);
+   * console.log(buf.toArray()); // [1, 2, 3]
+   * buf.put(4);
+   * console.log(buf.toArray()); // [2, 3, 4] // 1 overwritten
+   * ```
    */
-  public put(val: T) {
+  public put(val: T): this {
     this.buffer[this.writeIndex] = val;
     this.writeIndex++;
     if (this.writeIndex >= this.capacity) {
       this.writeIndex = 0;
       this.filled = true;
     }
+    return this;
   }
 
   /**
-   * Attempts to write an item into the buffer at given index.
-   * @param val value to store
-   * @param index index to store at
+   * Insert a value at an arbitrary index relative to the start of stored data.
+   * @param val Item to store.
+   * @param index Index within current data (supports negative indexing).
+   * @returns The buffer instance (chainable).
+   * @throws {Error} If index is out of bounds.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<string>(4);
+   * buf.put('a').put('b').put('c');
+   * buf.putAt('x', 1);
+   * console.log(buf.toArray()); // ['a', 'x', 'c']
+   * ```
    */
-  public putAt(val: T, index: number) {
+  public putAt(val: T, index: number): this {
     this.buffer[this.relativeIndex(index)] = val;
+    return this;
   }
 
   /**
-   * Clears the buffer (resets to empty)
+   * Remove all contents, resetting to empty state.
+   * @returns The buffer instance (chainable).
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<number>(3);
+   * buf.put(1).put(2);
+   * buf.clear();
+   * console.log(buf.isEmpty()); // true
+   * ```
    */
-  public clear(): void {
+  public clear(): this {
     this.writeIndex = 0;
     this.filled = false;
+    return this;
   }
 
   /**
-   * Returns the number of elements currently stored
+   * Number of elements currently stored in FIFO order.
+   * @returns Count between `0` and `capacity`.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer(3);
+   * buf.put(1);
+   * console.log(buf.size()); // 1
+   * ```
    */
   public size(): number {
     if (this.isFull()) {
@@ -72,8 +140,18 @@ export class CircularBuffer<T = number> {
   }
 
   /**
-   * Returns the element at the given index
-   * @param index
+   * Access stored item by index (supports negative indexing).
+   * @param index Index within current data.
+   * @returns Item at that position.
+   * @throws {Error} If index is out of bounds.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<string>(3);
+   * buf.put('one').put('two');
+   * console.log(buf.at(0));  // 'one'
+   * console.log(buf.at(-1)); // 'two'
+   * ```
    */
   public at(index: number): T {
     return this.buffer.at(this.relativeIndex(index))!;
@@ -92,40 +170,63 @@ export class CircularBuffer<T = number> {
     }
 
     let index = this.writeIndex;
-
-    for (let i = 0; i < this.size(); i++) {
+    for (let i = 0; i < this.capacity; i++) {
       yield this.buffer[index]!;
       index = (index + 1) % this.capacity;
     }
   }
 
-  public forEach(callback: (data: T, index: number) => void) {
-    let index = 0;
+  /**
+   * Execute a callback for each element in FIFO order.
+   * @param callback Called with (value, index) for each stored item.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<number>(3);
+   * buf.put(10).put(20);
+   * buf.forEach((v, i) => console.log(i, v));
+   * // Logs: 0 10 \n 1 20
+   * ```
+   */
+  public forEach(callback: (data: T, index: number) => void): void {
+    let idx = 0;
     for (const item of this) {
-      callback(item, index++);
+      callback(item, idx++);
     }
   }
 
+  /**
+   * Convert buffer contents to a linear array in FIFO order.
+   * @returns New array of stored items.
+   *
+   * @example
+   * ```ts
+   * const buf = new CircularBuffer<number>(3);
+   * buf.put(5).put(6).put(7);
+   * console.log(buf.toArray()); // [5, 6, 7]
+   * ```
+   */
   public toArray(): T[] {
     return Array.from(this);
   }
 
   private relativeIndex(index: number): number {
     if (Math.abs(index) > this.capacity) {
-      throw new Error('Index out of bounds');
+      throw new Error(
+        `Index out of bounds: ${index} not in valid range ` +
+          `[${this.capacity > 0 ? 0 : 0}..${this.capacity > 0 ? this.capacity - 1 : 0}] or ` +
+          `[-${this.capacity}..-1]`
+      );
     }
 
-    // Negative index is relative to the end of the buffer
     if (index < 0) {
       index = this.size() + index;
     }
-
-    index = index % this.capacity;
 
     if (!this.isFull()) {
       return index;
     }
 
-    return index + this.writeIndex;
+    return (index + this.writeIndex) % this.capacity;
   }
 }
